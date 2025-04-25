@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
 
-public abstract class Product {
+public sealed abstract  class Product permits Food, Drink{
     private final int id;
     private final String name;
     private final BigDecimal price;
@@ -12,21 +12,21 @@ public abstract class Product {
     private  Rating rating;
 
 
-    public Product(int id, String name, BigDecimal price, Rating rating) {
+    Product(int id, String name, BigDecimal price, Rating rating) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.rating = rating;
     }
 
-    public Product(int id, String name, BigDecimal price){
-        this(id, name, price, Rating.NOT_RATED);
+//    public Product(int id, String name, BigDecimal price){
+//        this(id, name, price, Rating.NOT_RATED);
+//
+//    }
 
-    }
-
-    public Product(){
-        this(0, "please enter the product's name", BigDecimal.ZERO, Rating.NOT_RATED);
-    }
+//    public Product(){
+//        this(0, "please enter the product's name", BigDecimal.ZERO, Rating.NOT_RATED);
+//    }
 
     public Rating getRating() {
         return this.rating;
