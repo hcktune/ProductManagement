@@ -1,4 +1,8 @@
 package labs.data;
 
-public record Review(Rating rating, String comment) {
+public record Review(Rating rating, String comment) implements Comparable<Review> {
+    @Override
+    public int compareTo(Review other) {
+        return  other.rating.ordinal() - this.rating.ordinal();
+    }
 }

@@ -2,21 +2,29 @@ package labs.data;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.Objects;
 
-public sealed abstract  class Product permits Food, Drink{
+public sealed abstract  class Product
+        implements Rateable<Product> permits Drink, Food{
     private final int id;
     private final String name;
     private final BigDecimal price;
+    private LocalDate bestBefore;
     public static final BigDecimal DISCOUNT_RATE = BigDecimal.valueOf(0.1);
     private  Rating rating;
 
 
-    Product(int id, String name, BigDecimal price, Rating rating) {
+    public LocalDate getBestBefore()
+    {
+        return this.bestBefore;
+    }
+    Product(int id, String name, BigDecimal price, Rating rating, LocalDate bestBefore) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.rating = rating;
+        this.bestBefore = bestBefore;
     }
 
 //    public Product(int id, String name, BigDecimal price){
@@ -27,7 +35,7 @@ public sealed abstract  class Product permits Food, Drink{
 //    public Product(){
 //        this(0, "please enter the product's name", BigDecimal.ZERO, Rating.NOT_RATED);
 //    }
-
+    @Override
     public Rating getRating() {
         return this.rating;
     }
@@ -64,7 +72,7 @@ public sealed abstract  class Product permits Food, Drink{
         return price.multiply(DISCOUNT_RATE).setScale(2, RoundingMode.HALF_UP);
     }
 
-    public abstract Product applyRating(Rating rating);
+
 
     @Override
     public String toString() {
@@ -80,7 +88,7 @@ public sealed abstract  class Product permits Food, Drink{
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o instanceof Product product){
-        return id == product.id && Objects.equals(name, product.name);}
+        return id == product.id;}
         return  false;
     }
 

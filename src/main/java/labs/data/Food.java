@@ -4,36 +4,30 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public final class Food extends Product{
-    private LocalDate bestBefore;
-    private Rating newRating;
 
-    public Rating getNewRating() {
-        return newRating;
-    }
+
+
+
 
     Food(int id, String name, BigDecimal price, Rating rating, LocalDate bestBefore) {
-        super(id, name, price, rating);
-        this.bestBefore = bestBefore;
+        super(id, name, price, rating, bestBefore);
     }
-    public LocalDate getBestBefore()
-    {
-        return this.bestBefore;
-    }
+
 
     @Override
     public String toString() {
         return "Food{" +
-                "bestBefore=" + bestBefore +
+                "bestBefore=" + getBestBefore() +
                 "} " + super.toString();
     }
 
     @Override
     public BigDecimal getDiscount() {
-        return bestBefore.equals(LocalDate.now()) ? super.getDiscount() : BigDecimal.ZERO;
+        return getBestBefore().equals(LocalDate.now()) ? super.getDiscount() : BigDecimal.ZERO;
     }
 
     @Override
     public Product applyRating(Rating rating) {
-        return new Food(super.getId(), super.getName(), super.getPrice(), newRating, bestBefore);
+        return new Food(getId(), getName(), getPrice(), rating, getBestBefore());
     }
 }

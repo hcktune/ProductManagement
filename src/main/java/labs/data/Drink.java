@@ -1,11 +1,13 @@
 package labs.data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 public final  class Drink extends Product{
-    Drink(int id, String name, BigDecimal price, Rating rating){
-        super(id, name, price, rating);
+
+    Drink(int id, String name, BigDecimal price, Rating rating, LocalDate bestBefore){
+        super(id, name, price, rating, bestBefore);
     }
 
     @Override
@@ -16,6 +18,6 @@ public final  class Drink extends Product{
 
     @Override
     public Product applyRating(Rating rating) {
-        return null;
+        return new Drink(getId(), getName(), getPrice(), getRating(), getBestBefore());
     }
 }

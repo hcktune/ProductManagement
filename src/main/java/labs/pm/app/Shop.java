@@ -13,16 +13,19 @@ import java.util.Locale;
 * */
 public class Shop {
     public static void main(String[] args) {
-        ProductManager pm = new ProductManager(Locale.getDefault());
-        Product coffee = pm.createProduct(0, "coffee", BigDecimal.valueOf(200), Rating.NOT_RATED, LocalDate.now().plusDays(1));
-        pm.reviewProduct(coffee, Rating.TWO_STAR, "this coffe is good");
-//
-//        Product p6 = pm.createProduct(3, "burger", BigDecimal.valueOf(2), Rating.ONE_STAR, LocalDate.now().plusDays(2));
-//        System.out.println(p6.applyRating(Rating.TWO_STAR));
-//        System.out.println(p6);
-//        pm.createProduct(104, "chocolate", BigDecimal.valueOf(2.99), Rating.FIVE_STAR);
-//        pm.createProduct(104, "chocolate", BigDecimal.valueOf(2.99), Rating.FIVE_STAR, LocalDate.now().plusDays(2));
-        pm.printProductReport();
+        ProductManager pm = new ProductManager(Locale.UK);
+        Product p1 = pm.createProductFood(1, "coffee", BigDecimal.ZERO, Rating.ONE_STAR, LocalDate.now());
+        p1 = pm.reviewProduct(1, Rating.THREE_STAR, "Good");
+        p1 = pm.reviewProduct(p1, Rating.FOUR_STAR, "Nice");
+        p1 = pm.reviewProduct(p1, Rating.FIVE_STAR, "Excellent!");
+        p1 = pm.reviewProduct(1, Rating.THREE_STAR, "lets goo jemi");
+        p1 = pm.reviewProduct(p1, Rating.FOUR_STAR, "mmmm not good");
+        p1 = pm.reviewProduct(p1, Rating.FOUR_STAR, "lets goo ami");
+        p1 = pm.reviewProduct(p1, Rating.FOUR_STAR, "Niiice bro this is good");
+        p1 = pm.reviewProduct(p1, Rating.ONE_STAR, "yeee");
+        pm.printProductReport(p1);
+
+
 
     }
 }
