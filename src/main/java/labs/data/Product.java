@@ -11,7 +11,7 @@ public sealed abstract  class Product
     private final String name;
     private final BigDecimal price;
     private LocalDate bestBefore;
-    public static final BigDecimal DISCOUNT_RATE = BigDecimal.valueOf(0.1);
+    public static final BigDecimal DISCOUNT_RATE = BigDecimal.valueOf(0.5);
     private  Rating rating;
 
 
