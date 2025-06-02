@@ -14,14 +14,18 @@ import java.util.Locale;
 * */
 public class Shop {
     public static void main(String[] args) {
+        System.out.println("Current working directory: " + System.getProperty("user.dir"));
 
         ProductManager pm = new ProductManager("us-US");
-        pm.parseProduct("F, 1, tea, 10.99, 0, 2021-08-02");
-        pm.parseProduct("D, 2, cold orange, 1, 3, 2012-01-01");
-        pm.parseReview("1, 2, good");
+        pm.createProductDrink(2, "breadfast", BigDecimal.valueOf(2), Rating.FIVE_STAR, LocalDate.now());
+        pm.reviewProduct(2, Rating.FOUR_STAR, "four start not bad");
+        pm.reviewProduct(2, Rating.THREE_STAR, "yeeee");
+
+        pm.reviewProduct(1, Rating.FIVE_STAR, "not bad not bad");
 
 
         pm.printProductReport(1);
+        pm.printProductReport(2);
 //        pm.printProductReport(1);
 //        pm.changeLocale("ru-RU");
 //        pm.reviewProduct(2, Rating.FIVE_STAR, "Excellent!");

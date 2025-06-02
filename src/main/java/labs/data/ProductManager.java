@@ -26,43 +26,70 @@ public class ProductManager {
     private Map<Product, List<Review>> products = new HashMap<Product, List<Review>>();
     private static final Logger logger = Logger.getLogger(ProductManager.class.getName());
     private RessourceFormatter formater;
-    private ResourceBundle resourceBundle = ResourceBundle.getBundle("ressources");
-    private ResourceBundle config = ResourceBundle.getBundle("conf");
+    private ResourceBundle conf = ResourceBundle.getBundle("conf");
 
-    private Path reportFolder = Path.of(resourceBundle.getString("reports.folder"));
-    private Path dataFolder = Path.of(resourceBundle.getString("data.folder"));
-    private Path tmpFolder = Path.of(resourceBundle.getString("tmp.folder"));
+    private Path reportFolder = Path.of(conf.getString("reports.folder"));
+    private Path dataFolder = Path.of(conf.getString("data.folder"));
+    private Path tmpFolder = Path.of(conf.getString("tmp.folder"));
 
-    private MessageFormat reviewFormat = new MessageFormat(resourceBundle.getString("review.data.format"));
-    private MessageFormat productFormat = new MessageFormat(resourceBundle.getString("product.data.format"));
+    private MessageFormat reviewFormat = new MessageFormat(conf.getString("review.data.format"));
+    private MessageFormat productFormat = new MessageFormat(conf.getString("product.data.format"));
 
-    public void parseReview(String text){
-//        Review review = null;
+    public Review parseReview(String text){
+        Review review = null;
         try {
             Object[] values = reviewFormat.parse(text);
-            reviewProduct(Integer.parseInt((String) values[0]),
-                        Rateable.convert(Integer.parseInt((String) values[1])),
-                                (String) values[2]);
-//            review = new Review(Rateable.convert(Integer.parseInt((String) values[0])), (String) values[1]);
+//            reviewProduct(Integer.parseInt((String) values[0]),
+//                        Rateable.convert(Integer.parseInt((String) values[1])),
+//                                (String) values[2]);
+            review = new Review(Rateable.convert(Integer.parseInt((String) values[0])), (String) values[1]);
         } catch (ParseException  | NumberFormatException e )  {
             logger.log(Level.WARNING, "Error parsing review" + text, e.getMessage());
         }
-//        return review;
-    }                 
-//    private List<Review> loadReviews(Product product) throws IOException {
-//        List<Review> reviews = null;
-//        Path f = dataFolder.resolve(MessageFormat.format(resourceBundle.getString("reviews.data.file"), product.getId()));
-//
-//        if (Files.notExists(f)){
-//            reviews = new ArrayList<>();
-//        } else{
-//            reviews = Files.lines(f, Charset.defaultCharset())
-//                    .map(text -> parseReview(text))
-//                    .filter(review -> review != null)
-//                    .collect(Collectors.toList());
-//        }
-//        return  reviews;
-//    }
+        return review;
+    }
+    private void loadAllData(){
+        try {
+            products = Files.list(dataFolder)
+                    .filter(file -> file.getFileName().toString().startsWith("product_"))
+                    .map(file -> loadProudct(file))
+                    .filter(product -> product != null)
+                    .collect(Collectors.toMap(product -> product,
+                            product -> {
+                                try {
+                                    return loadReviews(product);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private Product loadProudct(Path file){
+        Product p = null;
+        try {
+            p = parseProduct(Files.lines(dataFolder.resolve(file), Charset.defaultCharset()).findFirst().orElseThrow());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return p;
+    }
+
+    private List<Review> loadReviews(Product product) throws IOException {
+        List<Review> reviews = null;
+        Path f = dataFolder.resolve(MessageFormat.format(conf.getString("reviews.data.file"), product.getId()));
+
+        if (Files.notExists(f)){
+            reviews = new ArrayList<>();
+        } else{
+            reviews = Files.lines(f, Charset.defaultCharset())
+                    .map(text -> parseReview(text))
+                    .filter(review -> review != null)
+                    .collect(Collectors.toList());
+        }
+        return  reviews;
+    }
     public Product parseProduct(String product){
         Product p = null;
         try{
@@ -103,24 +130,24 @@ public class ProductManager {
 
         private static class RessourceFormatter {
             private Locale locale;
-            private ResourceBundle ressources;
+            private ResourceBundle conf;
             private NumberFormat moneyFormat;
             private DateTimeFormatter dateformat;
 
             public RessourceFormatter(Locale locale){
                 this.locale = locale;
-                ressources = ResourceBundle.getBundle("ressources", locale);
+                conf = ResourceBundle.getBundle("conf", locale);
                 dateformat = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).localizedBy(locale);
                 moneyFormat = NumberFormat.getCurrencyInstance(locale);
             }
 
             private String formatProduct(Product product){
                 String type = switch(product){
-                    case Food food -> ressources.getString("food");
-                    case Drink drink -> ressources.getString("drink");
+                    case Food food -> conf.getString("food");
+                    case Drink drink -> conf.getString("drink");
                 };
 
-                return MessageFormat.format(ressources.getString("product"),
+                return MessageFormat.format(conf.getString("product"),
                         product.getName(),
                         moneyFormat.format(product.getPrice()),
                         product.getRating().getStars(),
@@ -131,14 +158,14 @@ public class ProductManager {
             }
 
             private String formatReview(Review review){
-                return MessageFormat.format(ressources.getString("review"),
+                return MessageFormat.format(conf.getString("review"),
                         review.rating().getStars(),
                         review.comments()
                         );
             }
 
             private String getText(String key){
-                return ressources.getString(key);
+                return conf.getString(key);
             }
 
         }
@@ -152,7 +179,12 @@ public class ProductManager {
 
 
     public ProductManager(String languageTag) {
-        changeLocale(languageTag);
+            changeLocale(languageTag);
+            loadAllData();
+    }
+
+    public ProductManager(Locale locale){
+            this(locale.toLanguageTag());
     }
 
     public Product createProductDrink(int id, String name, BigDecimal price, Rating rating, LocalDate bestBefore) {
@@ -196,7 +228,7 @@ public class ProductManager {
         List<Review> reviews = products.get(product);
         Collections.sort(reviews);
 
-        Path productFile = reportFolder.resolve(MessageFormat.format(resourceBundle.getString("reports.file"),  product.getId()));
+        Path productFile = reportFolder.resolve(MessageFormat.format(conf.getString("reports.file"),  product.getId()));
 
         try (PrintWriter out = new PrintWriter(new OutputStreamWriter(Files.newOutputStream(productFile, StandardOpenOption.CREATE), StandardCharsets.UTF_8))) {
             out.append(formater.formatProduct(product) + System.lineSeparator());
