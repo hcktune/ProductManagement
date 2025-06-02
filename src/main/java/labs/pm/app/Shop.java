@@ -26,6 +26,7 @@ public class Shop {
 
         pm.printProductReport(1);
         pm.printProductReport(2);
+
 //        pm.printProductReport(1);
 //        pm.changeLocale("ru-RU");
 //        pm.reviewProduct(2, Rating.FIVE_STAR, "Excellent!");

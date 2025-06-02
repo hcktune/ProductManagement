@@ -7,11 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.MessageDigest;
-import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -20,7 +19,6 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ProductManager {
     private Map<Product, List<Review>> products = new HashMap<Product, List<Review>>();
@@ -30,7 +28,7 @@ public class ProductManager {
 
     private Path reportFolder = Path.of(conf.getString("reports.folder"));
     private Path dataFolder = Path.of(conf.getString("data.folder"));
-    private Path tmpFolder = Path.of(conf.getString("tmp.folder"));
+    private Path tempFolder = Path.of(conf.getString("temp.folder"));
 
     private MessageFormat reviewFormat = new MessageFormat(conf.getString("review.data.format"));
     private MessageFormat productFormat = new MessageFormat(conf.getString("product.data.format"));
@@ -47,6 +45,20 @@ public class ProductManager {
             logger.log(Level.WARNING, "Error parsing review" + text, e.getMessage());
         }
         return review;
+    }
+    private void dumpData(){
+        try {
+            if (Files.notExists(tempFolder)){
+                Files.createDirectory(tempFolder);
+            }
+            Path tempFile = tempFolder.resolve(MessageFormat.format(conf.getString("temp.file"),  "first"));
+                try (ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(tempFile, StandardOpenOption.CREATE))){
+                 out.writeObject(products);
+                 products = new HashMap<>();
+                }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error dumping data" + e.getMessage(), e);
+        }
     }
     private void loadAllData(){
         try {
@@ -182,6 +194,22 @@ public class ProductManager {
             changeLocale(languageTag);
             loadAllData();
     }
+    @SuppressWarnings("Unchecked")
+    private void restoreData(){
+            try{
+            Path tempFile = Files.list(tempFolder)
+                    .filter(path -> path.getFileName().toString().endsWith("tmp"))
+                    .findFirst().orElseThrow();
+                try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(tempFile, StandardOpenOption.DELETE_ON_CLOSE))){
+                    products = (HashMap) in.readObject();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            catch (Exception e){
+                logger.log(Level.SEVERE, "restoring data failed " + e.getMessage(), e);
+            }
+    }
 
     public ProductManager(Locale locale){
             this(locale.toLanguageTag());
@@ -309,7 +337,7 @@ public class ProductManager {
         System.out.println(txt);
     }
 
-    public Map<String, String> getDiscounts(){
+    public Map<Object, String> getDiscounts(){
             return products.keySet()
                     .stream()
                     .collect(
